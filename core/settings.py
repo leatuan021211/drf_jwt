@@ -54,6 +54,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     
     "authorization.middleware.JWTAuthMiddleware",
+    "authorization.middleware.RateLimitMiddleware",
 ]
 
 ROOT_URLCONF = "core.urls"

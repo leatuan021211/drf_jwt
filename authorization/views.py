@@ -5,7 +5,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework_simplejwt.tokens import OutstandingToken
-from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken
 from rest_framework_simplejwt.exceptions import TokenError
 from .serializers import LoginSerializer
@@ -79,5 +78,23 @@ class LogoutView(generics.GenericAPIView):
             response = Response(status=status.HTTP_205_RESET_CONTENT)
             response.delete_cookie('refresh_token')
             return response
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class LogoutAllView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        try:
+            # Get all tokens for the authenticated user
+            tokens = OutstandingToken.objects.filter(user=request.user)
+            for token in tokens:
+                # Blacklist each token
+                BlacklistedToken.objects.get_or_create(token=token)
+
+            # Response to confirm logout from all locations
+            return Response({'detail': ('Successfully logged out from all locations.')}, status=status.HTTP_205_RESET_CONTENT)
+        
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
